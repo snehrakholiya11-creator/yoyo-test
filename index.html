@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Yo-Yo Test">
+    <meta name="theme-color" content="#121212">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <title>Yo-Yo Test</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: sans-serif;
+            text-align: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .box {
+            background: #1e1e1e;
+            max-width: 450px;
+            margin: 20px auto;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #333;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .run  { background: #00e676; color: #000; }
+        .rest { background: #ffea00; color: #000; }
+        .time {
+            font-size: 4.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .card {
+            background: #252525;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .lbl { font-size: 0.8rem; color: #aaa; }
+        .val { font-size: 1.2rem; font-weight: bold; }
+        .dots {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .dot {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid #555;
+            line-height: 35px;
+            font-weight: bold;
+            color: #555;
+        }
+        .dot.hit {
+            background: #ff1744;
+            border-color: #ff1744;
+            color: #fff;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 5px 0;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #go    { background: #00e676; color: #000; }
+        #foul  { background: #ffea00; color: #000; }
+        #reset { background: #444;    color: #fff; }
+        button:disabled { opacity: 0.2; }
+        button:active { opacity: 0.7; }
+
+        #scorebox {
+            display: none;
+            background: #1a1a2e;
+            border: 2px solid #00e676;
+            border-radius: 12px;
+            margin-top: 20px;
+            padding: 20px;
+            text-align: left;
+        }
+        #scorebox h3 {
+            text-align: center;
+            color: #00e676;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+        }
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+            font-size: 1rem;
+        }
+        .score-row:last-child { border-bottom: none; }
+        .score-label { color: #aaa; font-size: 0.9rem; }
+        .score-value { font-weight: bold; color: #ffffff; }
+        .rating-poor     { color: #ff1744; }
+        .rating-below    { color: #ff6d00; }
+        .rating-average  { color: #ffea00; }
+        .rating-good     { color: #69f0ae; }
+        .rating-verygood { color: #00e676; }
+        .rating-excellent{ color: #00b0ff; }
+
+        /* safe area for iPhone notch */
+        .box {
+            padding-bottom: max(25px, env(safe-area-inset-bottom));
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Yo-Yo Shuttle Test</h2>
+    <div id="status" class="badge">READY</div>
+    <div id="clock" class="time">0.00</div>
+
+    <div class="grid">
+        <div class="card"><div class="lbl">LEVEL</div><div id="lvl" class="val">-</div></div>
+        <div class="card"><div class="lbl">SPEED</div><div id="spd" class="val">-</div></div>
+        <div class="card"><div class="lbl">DISTANCE</div><div id="dst" class="val">0 m</div></div>
+        <div class="card"><div class="lbl">SHUTTLE</div><div id="shl" class="val">-</div></div>
+    </div>
+
+    <div class="lbl">FOUL WARNINGS</div>
+    <div class="dots">
+        <div id="d1" class="dot">1</div>
+        <div id="d2" class="dot">2</div>
+        <div id="d3" class="dot">3</div>
+    </div>
+
+    <button id="go">START TEST</button>
+    <button id="foul" disabled>MISSED BEEP</button>
+    <button id="reset">RESET</button>
+
+    <div id="scorebox">
+        <h3>&#127942; FINAL SCORE</h3>
+        <div class="score-row">
+            <span class="score-label">Final Level</span>
+            <span class="score-value" id="sc-level">-</span>
+        </div>
+        <div class="score-row">
+            <span class="score-label">Final Shuttle</span>
+            <span class="score-value" id="sc-shuttle">-</span>
+        </div>
+        <div class="score-row">
+            <span class="score-label">Total Distance</span>
+            <span class="score-value" id="sc-distance">-</span>
+        </div>
+        <div class="score-row">
+            <span class="score-label">Warnings Received</span>
+            <span class="score-value" id="sc-warnings">-</span>
+        </div>
+        <div class="score-row">
+            <span class="score-label">Fitness Rating</span>
+            <span class="score-value" id="sc-rating">-</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Register Service Worker for PWA offline support
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(function() {});
+    }
+
+    var list = [
+        {"l":"5.1","s":10.0,"t":14.40},
+        {"l":"9.1","s":12.0,"t":12.00},
+        {"l":"11.1","s":13.0,"t":11.08},{"l":"11.2","s":13.0,"t":11.08},
+        {"l":"12.1","s":13.5,"t":10.67},{"l":"12.2","s":13.5,"t":10.67},{"l":"12.3","s":13.5,"t":10.67},
+        {"l":"13.1","s":14.0,"t":10.29},{"l":"13.2","s":14.0,"t":10.29},{"l":"13.3","s":14.0,"t":10.29},{"l":"13.4","s":14.0,"t":10.29},
+        {"l":"14.1","s":14.5,"t":9.93},{"l":"14.2","s":14.5,"t":9.93},{"l":"14.3","s":14.5,"t":9.93},{"l":"14.4","s":14.5,"t":9.93},{"l":"14.5","s":14.5,"t":9.93},{"l":"14.6","s":14.5,"t":9.93},{"l":"14.7","s":14.5,"t":9.93},{"l":"14.8","s":14.5,"t":9.93},
+        {"l":"15.1","s":15.0,"t":9.60},{"l":"15.2","s":15.0,"t":9.60},{"l":"15.3","s":15.0,"t":9.60},{"l":"15.4","s":15.0,"t":9.60},{"l":"15.5","s":15.0,"t":9.60},{"l":"15.6","s":15.0,"t":9.60},{"l":"15.7","s":15.0,"t":9.60},{"l":"15.8","s":15.0,"t":9.60},
+        {"l":"16.1","s":15.5,"t":9.29},{"l":"16.2","s":15.5,"t":9.29},{"l":"16.3","s":15.5,"t":9.29},{"l":"16.4","s":15.5,"t":9.29},{"l":"16.5","s":15.5,"t":9.29},{"l":"16.6","s":15.5,"t":9.29},{"l":"16.7","s":15.5,"t":9.29},{"l":"16.8","s":15.5,"t":9.29},
+        {"l":"17.1","s":16.0,"t":9.00},{"l":"17.2","s":16.0,"t":9.00},{"l":"17.3","s":16.0,"t":9.00},{"l":"17.4","s":16.0,"t":9.00},{"l":"17.5","s":16.0,"t":9.00},{"l":"17.6","s":16.0,"t":9.00},{"l":"17.7","s":16.0,"t":9.00},{"l":"17.8","s":16.0,"t":9.00},
+        {"l":"18.1","s":16.5,"t":8.73},{"l":"18.2","s":16.5,"t":8.73},{"l":"18.3","s":16.5,"t":8.73},{"l":"18.4","s":16.5,"t":8.73},{"l":"18.5","s":16.5,"t":8.73},{"l":"18.6","s":16.5,"t":8.73},{"l":"18.7","s":16.5,"t":8.73},{"l":"18.8","s":16.5,"t":8.73},
+        {"l":"19.1","s":17.0,"t":8.47},{"l":"19.2","s":17.0,"t":8.47},{"l":"19.3","s":17.0,"t":8.47},{"l":"19.4","s":17.0,"t":8.47},{"l":"19.5","s":17.0,"t":8.47},{"l":"19.6","s":17.0,"t":8.47},{"l":"19.7","s":17.0,"t":8.47},{"l":"19.8","s":17.0,"t":8.47},
+        {"l":"20.1","s":17.5,"t":8.23},{"l":"20.2","s":17.5,"t":8.23},{"l":"20.3","s":17.5,"t":8.23},{"l":"20.4","s":17.5,"t":8.23},{"l":"20.5","s":17.5,"t":8.23},{"l":"20.6","s":17.5,"t":8.23},{"l":"20.7","s":17.5,"t":8.23},{"l":"20.8","s":17.5,"t":8.23},
+        {"l":"21.1","s":18.0,"t":8.00},{"l":"21.2","s":18.0,"t":8.00},{"l":"21.3","s":18.0,"t":8.00},{"l":"21.4","s":18.0,"t":8.00},{"l":"21.5","s":18.0,"t":8.00},{"l":"21.6","s":18.0,"t":8.00},{"l":"21.7","s":18.0,"t":8.00},{"l":"21.8","s":18.0,"t":8.00},
+        {"l":"22.1","s":18.5,"t":7.78},{"l":"22.2","s":18.5,"t":7.78},{"l":"22.3","s":18.5,"t":7.78},{"l":"22.4","s":18.5,"t":7.78},{"l":"22.5","s":18.5,"t":7.78},{"l":"22.6","s":18.5,"t":7.78},{"l":"22.7","s":18.5,"t":7.78},{"l":"22.8","s":18.5,"t":7.78},
+        {"l":"23.1","s":19.0,"t":7.58},{"l":"23.2","s":19.0,"t":7.58},{"l":"23.3","s":19.0,"t":7.58},{"l":"23.4","s":19.0,"t":7.58},{"l":"23.5","s":19.0,"t":7.58},{"l":"23.6","s":19.0,"t":7.58},{"l":"23.7","s":19.0,"t":7.58},{"l":"23.8","s":19.0,"t":7.58}
+    ];
+
+    var idx          = 0;
+    var active       = false;
+    var mode         = "STOP";
+    var remain       = 0;
+    var runTotal     = 0;
+    var meters       = 0;
+    var faults       = 0;
+    var loop         = null;
+    var audio        = null;
+    var halfBeepFired = false;
+
+    function sound(freq, len) {
+        try {
+            if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+            if (audio.state === 'suspended') audio.resume();
+            var osc = audio.createOscillator();
+            var vol = audio.createGain();
+            osc.connect(vol);
+            vol.connect(audio.destination);
+            osc.frequency.value = freq;
+            osc.type = "sine";
+            vol.gain.setValueAtTime(0.12, audio.currentTime);
+            osc.start();
+            osc.stop(audio.currentTime + len);
+        } catch(e) {}
+    }
+
+    function getFitnessRating(level) {
+        var n = parseFloat(level);
+        if (n < 9)  return { text: "Poor",         cls: "rating-poor" };
+        if (n < 11) return { text: "Below Average", cls: "rating-below" };
+        if (n < 13) return { text: "Average",       cls: "rating-average" };
+        if (n < 16) return { text: "Good",          cls: "rating-good" };
+        if (n < 20) return { text: "Very Good",     cls: "rating-verygood" };
+        return      { text: "Excellent",            cls: "rating-excellent" };
+    }
+
+    function showScore() {
+        var finalLevel = idx > 0 ? list[idx - 1].l : list[0].l;
+        var rating = getFitnessRating(finalLevel);
+        document.getElementById("sc-level").textContent    = finalLevel;
+        document.getElementById("sc-shuttle").textContent  = idx + " / " + list.length;
+        document.getElementById("sc-distance").textContent = meters + " m";
+        document.getElementById("sc-warnings").textContent = faults + " / 3";
+        var ratingEl = document.getElementById("sc-rating");
+        ratingEl.textContent = rating.text;
+        ratingEl.className   = "score-value " + rating.cls;
+        document.getElementById("scorebox").style.display = "block";
+    }
+
+    var viewClock  = document.getElementById("clock");
+    var viewStatus = document.getElementById("status");
+    var viewLvl    = document.getElementById("lvl");
+    var viewSpd    = document.getElementById("spd");
+    var viewDst    = document.getElementById("dst");
+    var viewShl    = document.getElementById("shl");
+    var btnGo      = document.getElementById("go");
+    var btnFoul    = document.getElementById("foul");
+    var btnReset   = document.getElementById("reset");
+
+    function refresh() {
+        viewClock.textContent = Math.max(0, remain).toFixed(2);
+        viewDst.textContent   = meters + " m";
+        if (mode === "STOP") {
+            viewLvl.textContent = "-";
+            viewSpd.textContent = "-";
+            viewShl.textContent = "-";
+            return;
+        }
+        var current = list[idx];
+        if (current) {
+            viewLvl.textContent = current.l;
+            viewSpd.textContent = current.s + " km/h";
+            viewShl.textContent = (idx + 1) + " / " + list.length;
+        }
+    }
+
+    function startRun() {
+        mode          = "RUN";
+        runTotal      = list[idx].t;
+        remain        = runTotal;
+        halfBeepFired = false;
+        viewStatus.textContent = "RUN";
+        viewStatus.className   = "badge run";
+        sound(880, 0.15);
+        runTimer();
+    }
+
+    function runTimer() {
+        clearInterval(loop);
+        var last = Date.now();
+        loop = setInterval(function() {
+            if (!active) return;
+            var now = Date.now();
+            remain -= (now - last) / 1000;
+            last = now;
+            if (!halfBeepFired && remain <= runTotal / 2) {
+                halfBeepFired = true;
+                sound(660, 0.15);
+            }
+            if (remain <= 0) {
+                clearInterval(loop);
+                sound(880, 0.15);
+                meters += 20;
+                idx++;
+                if (idx >= list.length) {
+                    endTest();
+                } else {
+                    startRest();
+                }
+            }
+            refresh();
+        }, 50);
+    }
+
+    function startRest() {
+        mode   = "REST";
+        remain = 6;
+        viewStatus.textContent = "REST";
+        viewStatus.className   = "badge rest";
+        var last = Date.now();
+        loop = setInterval(function() {
+            if (!active) return;
+            var now = Date.now();
+            remain -= (now - last) / 1000;
+            last = now;
+            if (remain <= 0) {
+                clearInterval(loop);
+                sound(880, 0.15);
+                startRun();
+            }
+            refresh();
+        }, 50);
+    }
+
+    function endTest() {
+        active = false;
+        clearInterval(loop);
+        mode = "STOP";
+        viewStatus.textContent   = "DONE";
+        viewStatus.className     = "badge";
+        btnGo.textContent        = "START TEST";
+        btnGo.style.display      = "block";
+        btnGo.style.background   = "#00e676";
+        btnFoul.disabled         = true;
+        sound(440, 0.6);
+        refresh();
+        showScore();
+    }
+
+    btnGo.addEventListener("click", function() {
+        if (!active) {
+            if (mode === "STOP") {
+                idx = 0; meters = 0; faults = 0;
+                document.getElementById("d1").classList.remove("hit");
+                document.getElementById("d2").classList.remove("hit");
+                document.getElementById("d3").classList.remove("hit");
+                document.getElementById("scorebox").style.display = "none";
+                startRun();
+            } else {
+                active = true;
+                runTimer();
+            }
+            active = true;
+            btnGo.style.display = "none";
+            btnFoul.disabled    = false;
+        }
+    });
+
+    btnFoul.addEventListener("click", function() {
+        if (!active) return;
+        faults++;
+        sound(160, 0.4);
+        if (faults === 1) document.getElementById("d1").classList.add("hit");
+        if (faults === 2) document.getElementById("d2").classList.add("hit");
+        if (faults >= 3) {
+            document.getElementById("d3").classList.add("hit");
+            endTest();
+        }
+    });
+
+    btnReset.addEventListener("click", function() {
+        active = false;
+        clearInterval(loop);
+        mode = "STOP";
+        viewStatus.textContent = "READY";
+        viewStatus.className   = "badge";
+        remain = 0; meters = 0; idx = 0; faults = 0;
+        document.getElementById("d1").classList.remove("hit");
+        document.getElementById("d2").classList.remove("hit");
+        document.getElementById("d3").classList.remove("hit");
+        document.getElementById("scorebox").style.display = "none";
+        btnGo.textContent      = "START TEST";
+        btnGo.style.display    = "block";
+        btnGo.style.background = "#00e676";
+        btnFoul.disabled       = true;
+        refresh();
+    });
+</script>
+</body>
+</html>

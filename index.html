@@ -147,7 +147,7 @@
         <div class="card"><div class="lbl">LEVEL</div><div id="lvl" class="val">-</div></div>
         <div class="card"><div class="lbl">SPEED</div><div id="spd" class="val">-</div></div>
         <div class="card"><div class="lbl">DISTANCE</div><div id="dst" class="val">0 m</div></div>
-        <div class="card"><div class="lbl">SHUTTLE</div><div id="shl" class="val">-</div></div>
+        <div class="card"><div class="lbl">SHUTTLE</div><div id="shl" class="val">0</div></div>
     </div>
 
     <div class="lbl">FOUL WARNINGS</div>
@@ -168,7 +168,7 @@
             <span class="score-value" id="sc-level">-</span>
         </div>
         <div class="score-row">
-            <span class="score-label">Final Shuttle</span>
+            <span class="score-label">Total Shuttles</span>
             <span class="score-value" id="sc-shuttle">-</span>
         </div>
         <div class="score-row">
@@ -187,7 +187,7 @@
 </div>
 
 <script>
-   if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(function() {});
     }
 
@@ -219,8 +219,8 @@
     var loop          = null;
     var audio         = null;
     var halfBeepFired = false;
-    var runLeg        = 0;     // 0 = going, 1 = coming back
-    var shuttleCount  = 0;     // real completed shuttles
+    var runLeg        = 0;
+    var shuttleCount  = 0;
 
     function sound(freq, len) {
         try {
@@ -252,7 +252,7 @@
         var finalLevel = idx > 0 ? list[idx - 1].l : list[0].l;
         var rating = getFitnessRating(finalLevel);
         document.getElementById("sc-level").textContent    = finalLevel;
-        document.getElementById("sc-shuttle").textContent  = shuttleCount + " / " + list.length;
+        document.getElementById("sc-shuttle").textContent  = shuttleCount;
         document.getElementById("sc-distance").textContent = meters + " m";
         document.getElementById("sc-warnings").textContent = faults + " / 3";
         var ratingEl = document.getElementById("sc-rating");
@@ -277,14 +277,14 @@
         if (mode === "STOP") {
             viewLvl.textContent = "-";
             viewSpd.textContent = "-";
-            viewShl.textContent = "-";
+            viewShl.textContent = "0";
             return;
         }
         var current = list[idx];
         if (current) {
             viewLvl.textContent = current.l;
             viewSpd.textContent = current.s + " km/h";
-            viewShl.textContent = shuttleCount + " / " + list.length;
+            viewShl.textContent = shuttleCount;
         }
     }
 
@@ -314,10 +314,9 @@
             if (remain <= 0) {
                 clearInterval(loop);
                 sound(880, 0.15);
-                meters += 20;          // 20m per leg
+                meters += 20;
                 runLeg++;
                 if (runLeg === 2) {
-                    // both legs done = 1 full shuttle (40m)
                     runLeg = 0;
                     shuttleCount++;
                     idx++;

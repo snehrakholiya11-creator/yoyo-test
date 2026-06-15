@@ -272,21 +272,21 @@
     var btnReset   = document.getElementById("reset");
 
     function refresh() {
-        viewClock.textContent = Math.max(0, remain).toFixed(2);
-        viewDst.textContent   = meters + " m";
-        if (mode === "STOP") {
-            viewLvl.textContent = "-";
-            viewSpd.textContent = "-";
-            viewShl.textContent = "0";
-            return;
-        }
-        var current = list[idx];
-        if (current) {
-            viewLvl.textContent = current.l;
-            viewSpd.textContent = current.s + " km/h";
-            viewShl.textContent = shuttleCount;
-        }
+    viewClock.textContent = Math.max(0, remain).toFixed(2);
+    viewDst.textContent   = meters + " m";
+    if (mode === "STOP") {
+        viewLvl.textContent = "-";
+        viewSpd.textContent = "-";
+        viewShl.textContent = "0";
+        return;
     }
+    var current = list[idx];
+    if (current) {
+        viewLvl.textContent = current.l;
+        viewSpd.textContent = current.s + " km/h";
+        viewShl.textContent = shuttleCount;
+    }
+}
 
     function startRun() {
         mode          = "RUN";
@@ -399,23 +399,24 @@
     });
 
     btnReset.addEventListener("click", function() {
-        active = false;
-        clearInterval(loop);
-        mode = "STOP";
-        viewStatus.textContent = "READY";
-        viewStatus.className   = "badge";
-        remain = 0; meters = 0; idx = 0; faults = 0;
-        runLeg = 0; shuttleCount = 0;
-        document.getElementById("d1").classList.remove("hit");
-        document.getElementById("d2").classList.remove("hit");
-        document.getElementById("d3").classList.remove("hit");
-        document.getElementById("scorebox").style.display = "none";
-        btnGo.textContent      = "START TEST";
-        btnGo.style.display    = "block";
-        btnGo.style.background = "#00e676";
-        btnFoul.disabled       = true;
-        refresh();
-    });
+    active = false;
+    clearInterval(loop);
+    mode = "STOP";
+    viewStatus.textContent = "READY";
+    viewStatus.className   = "badge";
+    remain = 0; meters = 0; idx = 0; faults = 0;
+    runLeg = 0; shuttleCount = 0;
+    document.getElementById("d1").classList.remove("hit");
+    document.getElementById("d2").classList.remove("hit");
+    document.getElementById("d3").classList.remove("hit");
+    document.getElementById("scorebox").style.display = "none";
+    btnGo.textContent      = "START TEST";
+    btnGo.style.display    = "block";
+    btnGo.style.background = "#00e676";
+    btnFoul.disabled       = true;
+    viewShl.textContent    = "0";
+    refresh();
+});
 </script>
 </body>
 </html>

@@ -5,18 +5,18 @@ var FILES = [
     "/yoyo-test/manifest.json"
 ];
 
-self.addEventListener("install", function(e) {
-    e.waitUntil(
-        caches.open(CACHE).then(function(cache) {
-            return cache.addAll(FILES);
-        })
+self.addEventListener("install", function(event) {
+    self.skipWaiting();
+});
+
+self.addEventListener("activate", function(event) {
+    event.waitUntil(
+        self.clients.claim()
     );
 });
 
-self.addEventListener("fetch", function(e) {
-    e.respondWith(
-        caches.match(e.request).then(function(response) {
-            return response || fetch(e.request);
-        })
+self.addEventListener("fetch", function(event) {
+    event.respondWith(
+        fetch(event.request)
     );
 });

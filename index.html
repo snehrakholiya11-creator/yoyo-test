@@ -262,17 +262,16 @@
     function refresh() {
         viewClock.textContent = Math.max(0, remain).toFixed(2);
         viewDst.textContent   = meters + " m";
+        viewShl.textContent   = shuttleCount;
         if (mode === "STOP") {
             viewLvl.textContent = "-";
             viewSpd.textContent = "-";
-            viewShl.textContent = "0";
             return;
         }
         var current = list[idx];
         if (current) {
             viewLvl.textContent = current.l;
             viewSpd.textContent = current.s + " km/h";
-            viewShl.textContent = shuttleCount;
         }
     }
 
@@ -302,17 +301,18 @@
             if (remain <= 0) {
                 clearInterval(loop);
                 sound(880, 0.15);
-                // 1 run = 1 shuttle = 40m
-                shuttleCount++;
-                meters += 40;
+                shuttleCount++;   // ← count shuttle immediately when run ends
+                meters += 40;     // ← add 40m immediately when run ends
                 idx++;
+                refresh();        // ← refresh immediately so display updates
                 if (idx >= list.length) {
                     endTest();
                 } else {
                     startRest();
                 }
+            } else {
+                refresh();
             }
-            refresh();
         }, 50);
     }
 
@@ -356,6 +356,8 @@
             if (mode === "STOP") {
                 idx = 0; meters = 0; faults = 0;
                 shuttleCount = 0;
+                viewShl.textContent = "0";
+                viewDst.textContent = "0 m";
                 document.getElementById("d1").classList.remove("hit");
                 document.getElementById("d2").classList.remove("hit");
                 document.getElementById("d3").classList.remove("hit");
@@ -400,6 +402,10 @@
         btnGo.style.background = "#00e676";
         btnFoul.disabled       = true;
         viewShl.textContent    = "0";
+        viewDst.textContent    = "0 m";
+        viewLvl.textContent    = "-";
+        viewSpd.textContent    = "-";
+        viewClock.textContent  = "0.00";
         refresh();
     });
 </script>
